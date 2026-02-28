@@ -1,11 +1,5 @@
 import mongoose from "mongoose";
 
-const MONGO_URI = process.env.MONGO_URI!;
-
-if (!MONGO_URI) {
-  throw new Error("Please define MONGO_URI in .env");
-}
-
 let cached = (global as any).mongoose;
 
 if (!cached) {
@@ -13,15 +7,20 @@ if (!cached) {
 }
 
 export async function connectDB() {
+  const MONGO_URI = process.env.MONGO_URI;
+
+  if (!MONGO_URI) {
+    throw new Error("Please define MONGO_URI in .env");
+  }
+
   if (cached.conn) {
     return cached.conn;
   }
 
   if (!cached.promise) {
     const opts = {
-      serverSelectionTimeoutMS: 5000,
+      serverSelectionTimeoutMS: 10000,
       socketTimeoutMS: 45000,
-      connectTimeoutMS: 10000,
     };
 
     cached.promise = mongoose.connect(MONGO_URI, opts)
@@ -30,17 +29,12 @@ export async function connectDB() {
         return mongoose;
       })
       .catch((error) => {
-        console.error("MongoDB connection error:", error.message);
+        console.error("MongoDB connection error:", error);
         cached.promise = null;
-        throw new Error(`MongoDB connection failed: ${error.message}`);
+        throw error;
       });
   }
 
-  try {
-    cached.conn = await cached.promise;
-    return cached.conn;
-  } catch (error: any) {
-    cached.promise = null;
-    throw error;
-  }
+  cached.conn = await cached.promise;
+  return cached.conn;
 }
