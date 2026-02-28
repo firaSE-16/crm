@@ -27,11 +27,14 @@ A modern CRM application built with Next.js, featuring role-based access control
    cd crm
    ```
 
-2. **Set environment variables** (optional)
+2. **Set environment variables**
    Create a `.env` file in the root directory:
    ```env
+   MONGO_URI=mongodb://mongo:27017/crm
    JWT_SECRET=your-secret-key-change-in-production
    ```
+   
+   **Note**: Both `MONGO_URI` and `JWT_SECRET` are read from the `.env` file. If not provided, Docker will use default values.
 
 3. **Start the application**
    ```bash

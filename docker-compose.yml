@@ -21,7 +21,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - MONGO_URI=mongodb://mongo:27017/crm
+      - MONGO_URI=${MONGO_URI:-mongodb://mongo:27017/crm}
       - JWT_SECRET=${JWT_SECRET:-your-secret-key-change-in-production}
     depends_on:
       mongo:
@@ -29,12 +29,14 @@ services:
     restart: unless-stopped
     networks:
       - crm-network
+    env_file:
+      - .env
 
   seed:
     build: .
     command: npm run seed
     environment:
-      - MONGO_URI=mongodb://mongo:27017/crm
+      - MONGO_URI=${MONGO_URI:-mongodb://mongo:27017/crm}
       - JWT_SECRET=${JWT_SECRET:-your-secret-key-change-in-production}
     depends_on:
       mongo:
@@ -43,6 +45,8 @@ services:
       - crm-network
     profiles:
       - seed
+    env_file:
+      - .env
 
 networks:
   crm-network:
