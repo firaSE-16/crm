@@ -1,0 +1,52 @@
+services:
+  mongo:
+    image: mongo:7
+    container_name: crm_mongo
+    restart: always
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - crm-network
+
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/crm
+      - JWT_SECRET=${JWT_SECRET:-your-secret-key-change-in-production}
+    depends_on:
+      mongo:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - crm-network
+
+  seed:
+    build: .
+    command: npm run seed
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/crm
+      - JWT_SECRET=${JWT_SECRET:-your-secret-key-change-in-production}
+    depends_on:
+      mongo:
+        condition: service_healthy
+    networks:
+      - crm-network
+    profiles:
+      - seed
+
+networks:
+  crm-network:
+    driver: bridge
+
+volumes:
+  mongo_data:
